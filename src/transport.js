@@ -31,11 +31,16 @@ var Transport = (function() {
       cache: o.cache,
       timeout: o.timeout,
       dataType: o.dataType || 'json',
-      beforeSend: o.beforeSend
+      beforeSend: o.beforeSend,
+      //!PATCHED add complete of request
+      complete: o.complete
     };
 
     this._get = (/^throttle$/i.test(o.rateLimitFn) ?
       utils.throttle : utils.debounce)(this._get, o.rateLimitWait || 300);
+
+    //!PATCHED support custom ajax component
+    this.$ajax = o.$ajax || $.ajax;
   }
 
   utils.mixin(Transport.prototype, {

@@ -26,18 +26,19 @@ module.exports = function(grunt) {
       ' * typeahead.js <%= version %>',
       ' * https://github.com/twitter/typeahead',
       ' * Copyright 2013 Twitter, Inc. and other contributors; Licensed MIT',
+      ' * PATCHED by InterNations',
       ' */\n\n'
     ].join('\n'),
 
     uglify: {
       options: {
-        banner: '<%= banner %>',
-        enclose: { 'window.jQuery': '$' }
+        enclose: {}
       },
       js: {
         options: {
           mangle: false,
           beautify: true,
+          preserveComments: 'some',
           compress: false
         },
         src: jsFiles,
@@ -51,6 +52,15 @@ module.exports = function(grunt) {
         src: jsFiles,
         dest: '<%= buildDir %>/typeahead.min.js'
       }
+    },
+
+    rewrite: {
+        npm: {
+            src: '<%= buildDir %>/typeahead.js',
+            editor: function(contents) {
+                return grunt.config.process('<%= banner %>') + 'define' + contents;
+            }
+        }
     },
 
     sed: {
@@ -211,7 +221,7 @@ module.exports = function(grunt) {
   // -------
 
   grunt.registerTask('default', 'build');
-  grunt.registerTask('build', ['uglify', 'sed:version']);
+  grunt.registerTask('build', ['uglify:js', 'rewrite', 'uglify:jsmin', 'sed:version']);
   grunt.registerTask('server', 'connect:server');
   grunt.registerTask('lint', 'jshint');
   grunt.registerTask('test', 'jasmine:js');
@@ -227,6 +237,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-rewrite');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-connect');

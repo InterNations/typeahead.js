@@ -83,13 +83,13 @@ var TypeaheadView = (function() {
     .on('closed', this._clearHint)
     .on('opened closed', this._propagateEvent);
 
+    //!PATCHED: no clearSuggestion on queryChanged
     this.inputView = new InputView({ input: $input, hint: $hint })
     .on('focused', this._openDropdown)
     .on('blured', this._closeDropdown)
     .on('blured', this._setInputValueToQuery)
     .on('enterKeyed tabKeyed', this._handleSelection)
     .on('queryChanged', this._clearHint)
-    .on('queryChanged', this._clearSuggestions)
     .on('queryChanged', this._getSuggestions)
     .on('whitespaceChanged', this._updateHint)
     .on('queryChanged whitespaceChanged', this._openDropdown)
@@ -172,7 +172,10 @@ var TypeaheadView = (function() {
     },
 
     _setInputValueToQuery: function() {
-      this.inputView.setInputValue(this.inputView.getQuery());
+      //!PATCHED: bail out if the query string is empty (prevents placeholder shim problems in IE)
+      if (query !== '') {
+          this.inputView.setInputValue(this.inputView.getQuery());
+      }
     },
 
     _setInputValueToSuggestionUnderCursor: function(e) {
@@ -224,7 +227,11 @@ var TypeaheadView = (function() {
     _getSuggestions: function() {
       var that = this, query = this.inputView.getQuery();
 
-      if (utils.isBlankString(query)) { return; }
+      if (utils.isBlankString(query)) {
+        //!PATCHED: clear when blank because we dont clear on queryChanged
+        this._clearSuggestions();
+        return;
+      }
 
       utils.each(this.datasets, function(i, dataset) {
         dataset.getSuggestions(query, function(suggestions) {

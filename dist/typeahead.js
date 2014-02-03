@@ -2,9 +2,10 @@
  * typeahead.js 0.9.3
  * https://github.com/twitter/typeahead
  * Copyright 2013 Twitter, Inc. and other contributors; Licensed MIT
+ * PATCHED by InterNations
  */
 
-(function($) {
+define(function() {
     var VERSION = "0.9.3";
     var utils = {
         isMsie: function() {
@@ -307,9 +308,13 @@
                 cache: o.cache,
                 timeout: o.timeout,
                 dataType: o.dataType || "json",
-                beforeSend: o.beforeSend
+                beforeSend: o.beforeSend,
+                //!PATCHED add complete of request
+                complete: o.complete
             };
             this._get = (/^throttle$/i.test(o.rateLimitFn) ? utils.throttle : utils.debounce)(this._get, o.rateLimitWait || 300);
+            //!PATCHED support custom ajax component
+            this.$ajax = o.$ajax || $.ajax;
         }
         utils.mixin(Transport.prototype, {
             _get: function(url, cb) {
@@ -529,7 +534,8 @@
                 if (suggestions.length < this.limit && this.transport) {
                     cacheHit = this.transport.get(query, processRemoteData);
                 }
-                !cacheHit && cb && cb(suggestions);
+                //!PATCHED: dont call callback when using transport
+                (suggestions.length || !this.transport) && !cacheHit && cb && cb(suggestions);
                 function processRemoteData(data) {
                     suggestions = suggestions.slice(0);
                     utils.each(data, function(i, datum) {
@@ -911,10 +917,11 @@
             this.dropdownView = new DropdownView({
                 menu: $menu
             }).on("suggestionSelected", this._handleSelection).on("cursorMoved", this._clearHint).on("cursorMoved", this._setInputValueToSuggestionUnderCursor).on("cursorRemoved", this._setInputValueToQuery).on("cursorRemoved", this._updateHint).on("suggestionsRendered", this._updateHint).on("opened", this._updateHint).on("closed", this._clearHint).on("opened closed", this._propagateEvent);
+            //!PATCHED: no clearSuggestion on queryChanged
             this.inputView = new InputView({
                 input: $input,
                 hint: $hint
-            }).on("focused", this._openDropdown).on("blured", this._closeDropdown).on("blured", this._setInputValueToQuery).on("enterKeyed tabKeyed", this._handleSelection).on("queryChanged", this._clearHint).on("queryChanged", this._clearSuggestions).on("queryChanged", this._getSuggestions).on("whitespaceChanged", this._updateHint).on("queryChanged whitespaceChanged", this._openDropdown).on("queryChanged whitespaceChanged", this._setLanguageDirection).on("escKeyed", this._closeDropdown).on("escKeyed", this._setInputValueToQuery).on("tabKeyed upKeyed downKeyed", this._managePreventDefault).on("upKeyed downKeyed", this._moveDropdownCursor).on("upKeyed downKeyed", this._openDropdown).on("tabKeyed leftKeyed rightKeyed", this._autocomplete);
+            }).on("focused", this._openDropdown).on("blured", this._closeDropdown).on("blured", this._setInputValueToQuery).on("enterKeyed tabKeyed", this._handleSelection).on("queryChanged", this._clearHint).on("queryChanged", this._getSuggestions).on("whitespaceChanged", this._updateHint).on("queryChanged whitespaceChanged", this._openDropdown).on("queryChanged whitespaceChanged", this._setLanguageDirection).on("escKeyed", this._closeDropdown).on("escKeyed", this._setInputValueToQuery).on("tabKeyed upKeyed downKeyed", this._managePreventDefault).on("upKeyed downKeyed", this._moveDropdownCursor).on("upKeyed downKeyed", this._openDropdown).on("tabKeyed leftKeyed rightKeyed", this._autocomplete);
         }
         utils.mixin(TypeaheadView.prototype, EventTarget, {
             _managePreventDefault: function(e) {
@@ -959,7 +966,10 @@
                 this.dropdownView.clearSuggestions();
             },
             _setInputValueToQuery: function() {
-                this.inputView.setInputValue(this.inputView.getQuery());
+                //!PATCHED: bail out if the query string is empty (prevents placeholder shim problems in IE)
+                if (query !== "") {
+                    this.inputView.setInputValue(this.inputView.getQuery());
+                }
             },
             _setInputValueToSuggestionUnderCursor: function(e) {
                 var suggestion = e.data;
@@ -989,6 +999,8 @@
             _getSuggestions: function() {
                 var that = this, query = this.inputView.getQuery();
                 if (utils.isBlankString(query)) {
+                    //!PATCHED: clear when blank because we dont clear on queryChanged
+                    this._clearSuggestions();
                     return;
                 }
                 utils.each(this.datasets, function(i, dataset) {
@@ -1136,4 +1148,4 @@
             }
         };
     })();
-})(window.jQuery);
+})();
