@@ -5,7 +5,7 @@
  * PATCHED by InterNations
  */
 
-define(function() {
+define((function() {
     var VERSION = "0.9.3";
     var utils = {
         isMsie: function() {
@@ -1148,4 +1148,4 @@ define(function() {
             }
         };
     })();
-})();
+})());

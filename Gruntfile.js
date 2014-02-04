@@ -58,7 +58,7 @@ module.exports = function(grunt) {
         npm: {
             src: '<%= buildDir %>/typeahead.js',
             editor: function(contents) {
-                return grunt.config.process('<%= banner %>') + 'define' + contents;
+                return grunt.config.process('<%= banner %>') + 'define(' + contents.substring(0, contents.length - 1) + ');';
             }
         }
     },
