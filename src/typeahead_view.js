@@ -173,8 +173,9 @@ var TypeaheadView = (function() {
 
     _setInputValueToQuery: function() {
       //!PATCHED: bail out if the query string is empty (prevents placeholder shim problems in IE)
+      var query = this.inputView.getQuery();
       if (query !== '') {
-          this.inputView.setInputValue(this.inputView.getQuery());
+          this.inputView.setInputValue(query);
       }
     },
 
