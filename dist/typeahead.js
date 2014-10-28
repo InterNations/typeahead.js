@@ -1002,7 +1002,7 @@ var TypeaheadView = function() {
             var byClick = e.type === "suggestionSelected", suggestion = byClick ? e.data : this.dropdownView.getSuggestionUnderCursor();
             if (suggestion) {
                 //!PATCHED: prevent extra request when input field got updated by selected suggestion
-                this.inputView.setInputValue(suggestion.value, this);
+                this.inputView.setInputValue(suggestion.value, true);
                 byClick ? this.inputView.focus() : e.data.preventDefault();
                 byClick && utils.isMsie() ? utils.defer(this.dropdownView.close) : this.dropdownView.close();
                 this.eventBus.trigger("selected", suggestion.datum, suggestion.dataset);
