@@ -80,7 +80,8 @@ var Transport = (function() {
       if (!jqXhr) {
         incrementPendingRequests();
         jqXhr = pendingRequests[url] =
-          $.ajax(url, this.ajaxSettings).always(always);
+          // !PATCHED support custom ajax component
+          this.$ajax(url, this.ajaxSettings).always(always);
       }
 
       return jqXhr;
